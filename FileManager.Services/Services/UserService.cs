@@ -44,10 +44,31 @@ namespace FileManager.Services.Services
 
         public async Task UploadFile(int id, FileUploadRequest file, string webContentPath)
         {
-            var user = FindUserById(id);
+            var user = await FindUserById(id);
             var fileInfo = await FilesHandler.WriteFileOnServer(webContentPath, file);
-            var fileToSave = new UserFile(fileInfo.Filename, fileInfo.FileExtension, fileInfo.FileSize, DateTime.Now, user.Id);
-            await _db.Users.UploadFileAsync(StoredProcedures.UploadFile, fileToSave);
+            fileInfo.UserId = user.Id;
+            await _db.Users.UploadFileAsync(StoredProcedures.UploadFile, fileInfo);
+        }
+
+        public async Task InsertFileIntoFolder(int fileId, int folderId, int userId)
+        {
+            await _db.Users.ExecuteEntityCommandsAsync<dynamic>(StoredProcedures.InsertFileIntoFolder, new
+            {
+                Id = fileId,
+                UserId = userId,
+                FolderId = folderId
+            });
+        }
+
+
+        public async Task<IEnumerable<dynamic>?> GetUserFilesOrFolders(int userId, string target)
+        {
+            return target.ToLower() switch
+            {
+                "folders" => await _db.Users.ExecuteEntityQueriesAsync<Folder, dynamic>(StoredProcedures.GetUserFolders, new { UserId = userId }),
+                "files" => await _db.Users.ExecuteEntityQueriesAsync<UserFile, dynamic>(StoredProcedures.GetUserFIles, new { Id = userId }),
+                _ => null
+            };
         }
     }
 }

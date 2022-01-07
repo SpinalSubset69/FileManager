@@ -15,13 +15,12 @@ public class UserFile : BaseEntity
     public int UserId { get; set;}
     public int? FolderId { get; set; }
 
-    public UserFile(string fileName, string fileExtension, double fileSize, DateTime created_At, int userId)
+    public UserFile(string fileName, string fileExtension, double fileSize, DateTime created_At)
     {
         FileName = fileName;
         FileExtension = fileExtension;
         FileSize = fileSize;
-        Created_At = created_At;
-        UserId = userId;
+        Created_At = created_At;        
     }
     public UserFile()
     {

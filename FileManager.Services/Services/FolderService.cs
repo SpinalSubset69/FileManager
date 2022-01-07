@@ -40,4 +40,8 @@ public class FolderService
     {
         await _db.Folders.DeleteEntityAsync(StoredProcedures.DeleteFolder, id);
     }
+
+    public async Task<IEnumerable<UserFile>> GetFolderFiles(int folderId, int userId) =>
+        await _db.Folders.ExecuteEntityQueriesAsync<UserFile, dynamic>(StoredProcedures.GetFolderFiles, new { FolderId = folderId, UserId = userId });
+    
 }

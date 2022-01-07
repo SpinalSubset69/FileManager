@@ -85,5 +85,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="FileManagerDb.publish.xml" />
+    <None Include="FileManagerDb_1.publish.xml" />
   </ItemGroup>
 </Project>

@@ -13,4 +13,6 @@ public interface IRepository<T>
     Task UpdateEntityAsync<U>(string storedProcedure, U entity, string connectionId = "dev");
     Task<IEnumerable<T>> ListAllAsync<U>(string storedProcedure, U parameters ,string connectionId = "dev");
     Task<T?> FindByIdAsync(string storedProcedure, int id, string connectionId = "dev");
+    Task ExecuteEntityCommandsAsync<U>(string storedProcedure, U parameters, string connectionId = "dev");
+    Task<IEnumerable<T>> ExecuteEntityQueriesAsync<T,U>(string storedProcedure, U parameters, string connectionId = "dev");
 }

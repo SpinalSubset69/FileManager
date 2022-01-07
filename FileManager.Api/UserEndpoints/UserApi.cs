@@ -13,6 +13,9 @@ public static class UserApi
         app.MapPut("/users/{id}", UpdateUser);
         app.MapDelete("/users/{id}", DeleteUser);
         app.MapPost("/users/uploadfile/{id}", UploadFile);
+        app.MapPut("/users/insertfileintofolder/{id}", InsertFileIntoFolder);
+        app.MapGet("/users/userfolders/{id}", GetUserFolders);
+        app.MapGet("/users/userfiles/{id}", GetUserFiles);
     }
 
     private static async Task<IResult> PostUser(RegisterUserDto user, UserService service, IMapper _mapper)
@@ -75,9 +78,51 @@ public static class UserApi
     {
         try
         {
-            await service.UploadFile(id, file, _host.WebRootPath);
+            await service.UploadFile(id, file, _host.ContentRootPath);
 
-            return Results.Ok(new { message = "Upload" });
+            return Results.Ok(new { message = "File Uploaded" });
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem(ex.Message);
+        }
+    }
+
+    private static async Task<IResult> InsertFileIntoFolder(int id, InsertFileInFolderRequest request, UserService service)
+    {
+        try
+        {
+            await service.InsertFileIntoFolder(request.FileId, request.FolderId, id);
+
+            return Results.Ok(new { message = "File inserted on Folder" });
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem(ex.Message);
+        }
+    }
+
+    private static async Task<IResult> GetUserFolders(int id, UserService service)
+    {
+        try
+        {
+            var folders = await service.GetUserFilesOrFolders(id, "folders");
+
+            return Results.Ok(new { message = "Folders", data = folders });
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem(ex.Message);
+        }
+    }
+
+    private static async Task<IResult> GetUserFiles(int id, UserService service)
+    {
+        try
+        {
+            var files = await service.GetUserFilesOrFolders(id, "files");
+
+            return Results.Ok(new { message = "Files", data = files });
         }
         catch (Exception ex)
         {

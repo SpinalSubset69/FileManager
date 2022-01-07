@@ -11,6 +11,7 @@ public static class FolderApi
         app.MapPut("/folders/updatename/{id}", UpdateFolderName);
         app.MapPut("/folders/updatedesc/{id}", UpdateFolderDesc);
         app.MapDelete("/folders/{id}", DeleteFolder);
+        app.MapGet("/folders/files", GetFolderFiles);
     }
 
     private static async Task<IResult> PostFolder(RegisterFolderDto request, FolderService service, IMapper _mapper)
@@ -84,6 +85,18 @@ public static class FolderApi
             return Results.Ok(new { message = "Folder Removed" });
         }
         catch (Exception ex)
+        {
+            return Results.Problem(ex.Message);
+        }
+    }
+
+    private static async Task<IResult> GetFolderFiles(int id, int userId, FolderService service)
+    {
+        try
+        {
+            var files = await service.GetFolderFiles(id, userId);
+            return Results.Ok(new { message = "Folder Files", data = files });
+        }catch (Exception ex)
         {
             return Results.Problem(ex.Message);
         }

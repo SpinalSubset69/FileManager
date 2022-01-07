@@ -14,6 +14,16 @@ public class GenericRepository<T> : IRepository<T>
     public Task DeleteEntityAsync(string storedProcedure, int id, string connectionId = "dev") =>
         _db.SaveChangesAsync<dynamic>(storedProcedure, new { Id = id }, connectionId);
 
+    public async Task ExecuteEntityCommandsAsync<U>(string storedProcedure, U parameters, string connectionId = "dev")
+    {
+        await _db.SaveChangesAsync(storedProcedure, parameters, connectionId);
+    }
+
+    public async Task<IEnumerable<T>> ExecuteEntityQueriesAsync<T, U>(string storedProcedure, U parameters, string connectionId = "dev")
+    {
+        return await _db.LoadDataAsync<T, U>(storedProcedure, parameters, connectionId);
+    }
+
     public async Task<T?> FindByIdAsync(string storedProcedure, int id, string connectionId = "dev")
     {
         var entities =  await _db.LoadDataAsync<T, dynamic>(storedProcedure, new { Id = id }, connectionId);

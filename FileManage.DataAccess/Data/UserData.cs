@@ -17,7 +17,7 @@ public class UserData : GenericRepository<User>, IUserRepository
         var users =  await _db.LoadDataAsync<User, dynamic>(storedProcedure, new { Email = email }, connectionId);
         return users.FirstOrDefault();
     }
-
+  
     public async Task UploadFileAsync(string storedProcedure, UserFile file, string connectionId = "dev") =>
         await _db.SaveChangesAsync<dynamic>(storedProcedure, new
         {
