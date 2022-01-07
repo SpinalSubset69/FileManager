@@ -1,0 +1,9 @@
+﻿CREATE TABLE [dbo].[Folder]
+(
+	[Id] INT NOT NULL PRIMARY KEY IDENTITY, 
+    [Name] NVARCHAR(50) NOT NULL, 
+    [Description] NVARCHAR(100) NOT NULL, 
+    [Created_At] DATETIME NULL, 
+    [UserId] INT NOT NULL,
+    CONSTRAINT FK_User_Folder FOREIGN KEY(UserId) REFERENCES dbo.[User](Id) ON DELETE CASCADE
+)
