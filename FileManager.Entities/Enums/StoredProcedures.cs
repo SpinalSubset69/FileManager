@@ -25,4 +25,7 @@ public static class StoredProcedures
     public const string UpdateFolderDesc = "dbo.fmFolder_UpdateDescription";
     public const string DeleteFolder = "dbo.fmFolder_Delete";
     public const string GetFolderFiles = "dbo.fmUser_GetUserFolderFiles";
+
+    //Download StoredProcedures
+    public const string GetFileInfo = "dbo.fmFile_Get";
 }

@@ -31,6 +31,17 @@ public class FilesHandler
        
     }
 
+    public static async Task<FileInfoResponse> GetFileBytes(string path, UserFile file)
+    {
+        var folder = DefineFolderBasedOnFileExtension(file.FileExtension);
+        var fileName = $"{file.FileName}.{file.FileExtension}";
+        var fullPath = Path.Combine(path, "Uploads" ,folder , fileName);
+        var fileContent = await File.ReadAllBytesAsync(fullPath);
+        var fileMimeType = DefineFileMimeType(file.FileExtension);
+
+        return new FileInfoResponse(fullPath, fileMimeType, fileName, fileContent);   
+    }
+
     private static void VerifyIfPathExists(string path)
     {
         if (!Directory.Exists(path))
@@ -54,5 +65,27 @@ public class FilesHandler
         };
 
         return folder;
+    }
+    
+    private static string DefineFileMimeType(string extension)
+    {
+        string mimeType = "";
+        string[] imageTypes = new[]
+        {
+            "png",
+            "jpg",
+            "jpeg"
+        };
+        string[] docTypes = new[] { "pdf", "docx", "xlsx", "pptx" };
+       
+        
+        if(imageTypes.Contains(extension))
+        {
+            mimeType = "image/" + extension;
+        }
+        
+        //TODO: ADD DOCX MIME TYPE SUPport
+
+        return mimeType;
     }
 }

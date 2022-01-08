@@ -82,6 +82,7 @@
     <Build Include="dbo\StoredProcedures\fmFile_Delete.sql" />
     <Build Include="dbo\StoredProcedures\fmUser_GetUserFolders.sql" />
     <Build Include="dbo\StoredProcedures\fmUser_GetUserByEmail.sql" />
+    <Build Include="dbo\StoredProcedures\fmFile_Get.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FileManagerDb.publish.xml" />

@@ -70,5 +70,15 @@ namespace FileManager.Services.Services
                 _ => null
             };
         }
+
+        public async Task<FileInfoResponse> GetFileStreamBasedOnId(int id, string contentRootPath)
+        {
+            var files = await _db.Users.ExecuteEntityQueriesAsync<UserFile, dynamic>(StoredProcedures.GetFileInfo,new
+            {
+                Id = id
+            });
+            var fileInfo = files.FirstOrDefault();
+            return await FilesHandler.GetFileBytes(contentRootPath, fileInfo);
+        }
     }
 }
