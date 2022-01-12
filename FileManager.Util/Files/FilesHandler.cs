@@ -31,6 +31,15 @@ public class FilesHandler
        
     }
 
+    public static void DeleteFileOnServer(string path, string fileName, string fileExtension)
+    {
+        var folder = DefineFolderBasedOnFileExtension(fileExtension);
+
+        var fullPath = Path.Combine(path, "Uploads" ,folder, fileName + "." + fileExtension);
+
+        File.Delete(fullPath);
+    }
+
     public static async Task<FileInfoResponse> GetFileBytes(string path, UserFile file)
     {
         var folder = DefineFolderBasedOnFileExtension(file.FileExtension);

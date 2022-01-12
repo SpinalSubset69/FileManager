@@ -18,6 +18,9 @@ public static class StoredProcedures
     public const string InsertFileIntoFolder = "dbo.fmFile_InsertFileIntoFolder";
     public const string GetUserFolders = "dbo.fmUser_GetUserFolders";
     public const string GetUserFIles = "dbo.fmUser_GetUserFilesOutFolder";
+    public const string DeleteFile = "dbo.fmFile_Delete";
+    public const string GetAllUserFiles = "dbo.fmUser_GetAllUserFiles";
+    public const string UploadUserImage = "dbo.fmUser_UploadProfileImage";
 
     //Folders StoredProcedures
     public const string CreateFolder = "dbo.fmFolder_Insert";    

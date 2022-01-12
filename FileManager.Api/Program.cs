@@ -1,7 +1,10 @@
 using FileManage.DataAccess.Data;
 using FileManage.DataAccess.DbAccess;
 using FileManage.DataAccess.Interfaces;
+using FileManager.Api.Extensions;
 using FileManager.Api.Helpers;
+using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +13,20 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+//Swagger support for bearer header
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+    {
+        Description = "Standard Authorization hedader using the bearer scheme (\"bearer {token}\")",
+        In = ParameterLocation.Header,
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey
+    });
+
+    options.OperationFilter<SecurityRequirementsOperationFilter>();
+});
 
 
 //Data Access
@@ -20,8 +36,11 @@ builder.Services.AddSingleton<IUnitOfWork, UnitOfWork>();
 //Services
 builder.Services.AddScoped(typeof(UserService));
 builder.Services.AddScoped(typeof(FolderService));
+builder.Services.AddScoped(typeof(AuthService));
 builder.Services.AddAutoMapper(typeof(MappingProifle));
 
+//Authentication Shceme
+builder.Services.AddJwtBearerAuthorizationSchema(builder.Configuration);
 
 var app = builder.Build();
 
@@ -36,18 +55,7 @@ app.UseStaticFiles();
 
 app.UseHttpsRedirection();
 
-//ENDPOINTS
-
-////User endpoints
-//app.UserEndpoints();
-
-////Folder endpoints
-//app.FolderEndpoints();
-
-////Download endpoints
-//app.DownloadEndpoints();
-
-//ENDPONTS
+app.UseAuthentication();
 
 app.UseAuthorization();
 app.MapControllers();

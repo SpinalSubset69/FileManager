@@ -10,22 +10,22 @@ namespace FileManager.Util.Encrypt
 {
     public class EncryptHMAC
     {
-        public static void GetHMAC512(string plainText, out string hashedText, out string hashedSalt)
+        public static void GetHMAC512(string plainText, out byte[] hashedText, out byte[] hashedSalt)
         {
             using(var hmac = new HMACSHA512())
             {
-                hashedSalt = hmac.Key.ByteArrayToString();
+                hashedSalt = hmac.Key;
                 var computeHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(plainText));
-                hashedText = computeHash.ByteArrayToString();
+                hashedText = computeHash;
             }
         }
 
-        public static bool CompareHMAC512(string textToCompare, string hashedText, string hashedSalt)
+        public static bool CompareHMAC512(string textToCompare, byte[] hashedText, byte[] hashedSalt)
         {
-            using(var hmac = new HMACSHA512(Encoding.UTF8.GetBytes(hashedSalt)))
+            using(var hmac = new HMACSHA512(hashedSalt))
             {
                 var computeHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(textToCompare));
-                return computeHash.SequenceEqual(Encoding.UTF8.GetBytes(hashedText));
+                return computeHash.SequenceEqual(hashedText);
             }
         }
     }

@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.15.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.15.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\FileManage.DataAccess\FileManage.DataAccess.csproj" />
     <ProjectReference Include="..\FileManager.Entities\FileManager.Entities.csproj" />
     <ProjectReference Include="..\FileManager.Util\FileManager.Util.csproj" />

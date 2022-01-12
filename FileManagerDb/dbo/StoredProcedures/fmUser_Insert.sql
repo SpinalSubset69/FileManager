@@ -1,8 +1,8 @@
 ﻿CREATE PROCEDURE [dbo].[fmUser_Insert]
 	@UserName nvarchar(50),
 	@Email nvarchar(50),
-	@Password varchar(MAX),
-	@PasswordSalt varchar(MAX),
+	@Password VARBINARY(MAX),
+	@PasswordSalt VARBINARY(MAX),
 	@Created_At datetime
 AS
 BEGIN 

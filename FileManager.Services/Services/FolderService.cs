@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FileManager.Util.Files;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -36,12 +37,22 @@ public class FolderService
         await _db.Folders.UpdateEntityAsync<dynamic>(StoredProcedures.UpdateFolderDesc, new { Description = folderName, Id = id });
     }
 
-    public async Task DeleteFolder(int id)
+    public async Task DeleteFolder(int id, string path)
     {
+        var files = await _db.Folders.ExecuteEntityQueriesAsync<UserFile, dynamic>(StoredProcedures.GetFolderFiles, new { FolderId = id});
+
+        if(files != null)
+        {
+            foreach (var file in files)
+            {
+                FilesHandler.DeleteFileOnServer(path, file.FileName, file.FileExtension);
+            }
+        }        
+
         await _db.Folders.DeleteEntityAsync(StoredProcedures.DeleteFolder, id);
     }
 
-    public async Task<IEnumerable<UserFile>> GetFolderFiles(int folderId, int userId) =>
-        await _db.Folders.ExecuteEntityQueriesAsync<UserFile, dynamic>(StoredProcedures.GetFolderFiles, new { FolderId = folderId, UserId = userId });
+    public async Task<IEnumerable<UserFile>> GetFolderFiles(int folderId) =>
+        await _db.Folders.ExecuteEntityQueriesAsync<UserFile, dynamic>(StoredProcedures.GetFolderFiles, new { FolderId = folderId });
     
 }
