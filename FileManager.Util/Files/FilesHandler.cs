@@ -9,7 +9,7 @@ public class FilesHandler
     public static async Task<UserFile> WriteFileOnServer(string path, FileUploadRequest file)
     {
         //Get data from the file
-        string fileExtension = file.FileName.Split(".")[1];
+        string fileExtension = file.FileName.Split(".")[file.FileName.Split(".").Length - 1];
         string fileNameWithouExtension = file.FileName.Split(".")[0];
         var fileNameWithextension = fileNameWithouExtension + "." + fileExtension;
 
@@ -29,6 +29,31 @@ public class FilesHandler
         
         return new UserFile(fileNameWithouExtension, fileExtension, fileData.Length, DateTime.Now);
        
+    }
+
+    public static async Task<UserFile> SaveUserImageOnServer(User user, string path, FileUploadRequest file)
+    {
+        //Get data from the file
+        string fileExtension = file.FileName.Split(".")[file.FileName.Split(".").Length - 1];
+        string fileNameWithouExtension = Guid.NewGuid().ToString();
+        var fileNameWithextension = fileNameWithouExtension + "." + fileExtension;
+
+        //Verify File type to save in correct folder
+        var folder = "ProfileImages";
+
+        string[] basePaths = new[] { path, $"Uploads\\{folder}\\" };
+        var fullPath = Path.Combine(basePaths);
+
+        //Get file bytes
+        byte[] fileData = Convert.FromBase64String(file.Content.base64WithoutHeader());
+
+        VerifyIfPathExists(fullPath);
+
+
+        await File.WriteAllBytesAsync(fullPath + fileNameWithextension, fileData);
+
+        return new UserFile(fileNameWithouExtension, fileExtension, fileData.Length, DateTime.Now);
+
     }
 
     public static void DeleteFileOnServer(string path, string fileName, string fileExtension)
@@ -61,7 +86,7 @@ public class FilesHandler
 
     private static string DefineFolderBasedOnFileExtension(string extension)
     {
-        string folder = extension.ToLower() switch
+        return extension.ToLower() switch
         {
             "jpg" => "Images",
             "jpeg" => "Images",
@@ -70,10 +95,10 @@ public class FilesHandler
             "mkv" => "Videos",
             "3gp" => "Videos",
             "mp3" => "Music",
+            "exe" => "Executables",
+            "msi" => "Executables",
             _ => "Docs"
-        };
-
-        return folder;
+        }; 
     }
     
     private static string DefineFileMimeType(string extension)

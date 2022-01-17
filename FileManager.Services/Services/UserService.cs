@@ -15,12 +15,24 @@ namespace FileManager.Services.Services
 
         public async Task SaveUserImageAsync(int id, FileUploadRequest file, string path)
         {
-            var fileSaved = await FilesHandler.WriteFileOnServer(path, file);
+            var user = await FindUserById(id);
+            var fileSaved = await FilesHandler.SaveUserImageOnServer(user, path, file);
             await _db.Users.ExecuteEntityCommandsAsync<dynamic>(StoredProcedures.UploadUserImage, new
             {
                 Id = id,
                 ProfileImage = fileSaved.FileName + "." + fileSaved.FileExtension
             });
+        }        
+
+        public async Task<IEnumerable<UserFile>> QueryOnFilesAsync(int id, string query)
+        {
+            var files = await _db.Users.ExecuteEntityQueriesAsync<UserFile, dynamic>(StoredProcedures.QueryOnUserFiles, new
+            {
+                Id = id,
+                Query = query
+            });
+
+            return files;
         }
 
         public async Task SaveUserAsync(RegisterUserDto user)
@@ -57,12 +69,18 @@ namespace FileManager.Services.Services
             await _db.Users.DeleteEntityAsync(StoredProcedures.DeleteUser, id);
         }
 
-        public async Task UploadFile(int id, FileUploadRequest file, string webContentPath)
+        public async Task<UserFile> UploadFile(int id, FileUploadRequest file, string webContentPath)
         {
             var user = await FindUserById(id);
             var fileInfo = await FilesHandler.WriteFileOnServer(webContentPath, file);
             fileInfo.UserId = user.Id;
             await _db.Users.UploadFileAsync(StoredProcedures.UploadFile, fileInfo);
+            var userFiles = await _db.Users.ExecuteEntityQueriesAsync<UserFile, dynamic>(StoredProcedures.GetFileByName, new
+            {
+                FileName = fileInfo.FileName
+            });
+
+            return userFiles.FirstOrDefault();
         }
 
         public async Task InsertFileIntoFolder(int fileId, int folderId, int userId)
@@ -75,14 +93,23 @@ namespace FileManager.Services.Services
             });
         }
 
-        public async Task<IEnumerable<dynamic>?> GetUserFilesOrFolders(int userId, string target)
+        public async Task<IEnumerable<dynamic>?> GetUserFilesOrFolders(int userId, string target, PaginationParams pagParams)
         {
             return target.ToLower() switch
             {
                 "folders" => await _db.Users.ExecuteEntityQueriesAsync<Folder, dynamic>(StoredProcedures.GetUserFolders, new { UserId = userId }),
-                "files" => await _db.Users.ExecuteEntityQueriesAsync<UserFile, dynamic>(StoredProcedures.GetUserFIles, new { Id = userId }),
+                "files" => await _db.Users.ExecuteEntityQueriesAsync<UserFile, dynamic>(StoredProcedures.GetUserFIles, 
+                new { Id = userId}),
                 _ => null
             };
+        }
+
+        public async Task<int> GetUserFilesCountWithoutFolders(int userId)
+        {
+            var totals = await _db.Users.ExecuteEntityQueriesAsync<dynamic, dynamic>(StoredProcedures.GetFilesCount, new { UserId = userId });
+            var total = totals.FirstOrDefault();
+
+            return total.TOTAL;
         }
 
         public async Task<User?> VerifyLoginInfo(LoginDto info)

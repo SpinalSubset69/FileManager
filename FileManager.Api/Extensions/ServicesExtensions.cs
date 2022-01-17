@@ -21,6 +21,12 @@ internal static class ServicesExtensions
                 };
             });
 
+        services.AddCors(op => {
+            op.AddPolicy("Cors", options => {
+                options.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200");
+            });
+        });
+
         return services;
     }
 }

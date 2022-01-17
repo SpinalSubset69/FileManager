@@ -20,7 +20,11 @@ public static class StoredProcedures
     public const string GetUserFIles = "dbo.fmUser_GetUserFilesOutFolder";
     public const string DeleteFile = "dbo.fmFile_Delete";
     public const string GetAllUserFiles = "dbo.fmUser_GetAllUserFiles";
-    public const string UploadUserImage = "dbo.fmUser_UploadProfileImage";
+    public const string UploadUserImage = "dbo.fmUser_UpdateInsertUserImage";
+    public const string GetFilesWithPagination = "dbo.fmUser_FilesPagination";
+    public const string GetFilesCount = "dbo.fmUser_UserFilesCount";
+    public const string QueryOnUserFiles= "dbo.fmUser_QueryOnFiles";
+    public const string GetFileByName = "dbo.fmFile_GetFileByName";
 
     //Folders StoredProcedures
     public const string CreateFolder = "dbo.fmFolder_Insert";    

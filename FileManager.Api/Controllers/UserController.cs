@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FileManager.Api.Controllers;
 
-[ApiController, Authorize]
+[ApiController]
 [Route("[controller]")]
 public class UserController: ControllerBase
 {
@@ -24,7 +24,7 @@ public class UserController: ControllerBase
         _configuration = configuration;
     }
     
-    [HttpGet]
+    [HttpGet, Authorize]
     public async Task<IResult> FindUserById()
     {
         try
@@ -41,14 +41,14 @@ public class UserController: ControllerBase
         }
     }
 
-    [HttpGet("/folders/")]
-    public async Task<IResult> GetUserFolders()
+    [HttpGet("/folders/"), Authorize]
+    public async Task<IResult> GetUserFolders([FromQuery] PaginationParams pagParams)
     {
         try
         {
             var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
             var tokenInfo = _authService.DecodeToken(token);
-            var folders = await _userService.GetUserFilesOrFolders(Convert.ToInt32(tokenInfo.Issuer), "folders");
+            var folders = await _userService.GetUserFilesOrFolders(Convert.ToInt32(tokenInfo.Issuer), "folders", pagParams);            
 
             return Results.Ok(new { message = "Folders", data = folders });
         }
@@ -58,14 +58,30 @@ public class UserController: ControllerBase
         }
     }
 
-    [HttpGet("/userfiles/")]
-    public async Task<IResult> GetUserFiles()
+    [HttpGet("/userfiles/"), Authorize, Authorize]
+    public async Task<IResult> GetUserFiles([FromQuery]PaginationParams pagParams)
     {
         try
         {
             var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
             var tokenInfo = _authService.DecodeToken(token);
-            var files = await _userService.GetUserFilesOrFolders(Convert.ToInt32(tokenInfo.Issuer), "files");
+            var files = await _userService.GetUserFilesOrFolders(Convert.ToInt32(tokenInfo.Issuer), "files", pagParams);            
+            return Results.Ok(new { message = "Files", data = files });
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem(ex.Message);
+        }
+    }
+
+    [HttpGet("/queryonfiles"), Authorize, Authorize]
+    public async Task<IResult> QueryOnUserFiles([FromQuery] string query)
+    {
+        try
+        {
+            var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
+            var tokenInfo = _authService.DecodeToken(token);
+            var files = await _userService.QueryOnFilesAsync(Convert.ToInt32(tokenInfo.Issuer), query);            
             return Results.Ok(new { message = "Files", data = files });
         }
         catch (Exception ex)
@@ -79,7 +95,7 @@ public class UserController: ControllerBase
     {
         try
         {
-            var file = await _userService.GetFileStreamBasedOnId(id, _host.ContentRootPath);
+            var file = await _userService.GetFileStreamBasedOnId(id, _host.WebRootPath);
             return File(file.Content, "application/octet-stream", file.FileName);
         }
         catch (Exception ex)
@@ -88,7 +104,7 @@ public class UserController: ControllerBase
         }
     }
 
-    [HttpPut]
+    [HttpPut, Authorize]
     public async Task<IResult> UpdateUser(int id, [FromBody]UpdateUserInfoDto request)
     {
         try
@@ -103,12 +119,12 @@ public class UserController: ControllerBase
         }
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id}"), Authorize]
     public async Task<IResult> DeleteUser(int id, UserService service)
     {
         try
         {
-            await service.DeleteUser(id, _host.ContentRootPath);
+            await service.DeleteUser(id, _host.WebRootPath);
 
             return Results.Ok(new { message = "User Deleted" });
         }
@@ -123,7 +139,7 @@ public class UserController: ControllerBase
     {
         try
         {
-            await _userService.DeleteUserFileAsync(id, _host.ContentRootPath);
+            await _userService.DeleteUserFileAsync(id, _host.WebRootPath);
 
             return Results.Ok(new { message = "File Removed" });
         }catch(Exception ex)
@@ -132,16 +148,16 @@ public class UserController: ControllerBase
         }
     }
 
-    [HttpPost("/uploadfile")]
+    [HttpPost("/uploadfile"), Authorize]
     public async Task<IResult> UploadFile([FromBody]FileUploadRequest file)
     {
         try
         {
             var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
             var tokenInfo = _authService.DecodeToken(token);
-            await _userService.UploadFile(Convert.ToInt32(tokenInfo.Issuer), file, _host.ContentRootPath);
+            var fileInfo = await _userService.UploadFile(Convert.ToInt32(tokenInfo.Issuer), file, _host.WebRootPath);
 
-            return Results.Ok(new { message = "File Uploaded" });
+            return Results.Ok(new { message = "File Uploaded", data = fileInfo });
         }
         catch (Exception ex)
         {
@@ -149,14 +165,14 @@ public class UserController: ControllerBase
         }
     }
 
-    [HttpPost("/userimage")]
+    [HttpPost("/userimage"), Authorize]
     public async Task<IResult> UploadUserImage([FromBody] FileUploadRequest file)
     {
         try
         {
             var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
             var tokenInfo = _authService.DecodeToken(token);
-            await _userService.SaveUserImageAsync(Convert.ToInt32(tokenInfo.Issuer), file, _host.ContentRootPath);
+            await _userService.SaveUserImageAsync(Convert.ToInt32(tokenInfo.Issuer), file, _host.WebRootPath);
 
             return Results.Ok(new { message = "File Uploaded" });
         }
@@ -166,12 +182,14 @@ public class UserController: ControllerBase
         }
     }
 
-    [HttpPut("/insertfileintofolder/{id}")]
-    public async Task<IResult> InsertFileIntoFolder(int id, [FromBody]InsertFileInFolderRequest request)
+    [HttpPut("/insertfileintofolder"), Authorize]
+    public async Task<IResult> InsertFileIntoFolder( [FromBody]InsertFileInFolderRequest request)
     {
         try
         {
-            await _userService.InsertFileIntoFolder(request.FileId, request.FolderId, id);
+            var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
+            var tokenInfo = _authService.DecodeToken(token);
+            await _userService.InsertFileIntoFolder(request.FileId, request.FolderId, Convert.ToInt32(tokenInfo.Issuer));
 
             return Results.Ok(new { message = "File inserted on Folder" });
         }

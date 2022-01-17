@@ -55,6 +55,9 @@ app.UseStaticFiles();
 
 app.UseHttpsRedirection();
 
+//Cors to allow only calls from the angular client
+app.UseCors("Cors");
+
 app.UseAuthentication();
 
 app.UseAuthorization();

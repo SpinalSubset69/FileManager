@@ -11,7 +11,7 @@ public class AuthService
 {    
     public Session CreateSession(User user, string securityKey)
     {
-        var expiresInMilSeconds = DateTimeOffset.Now.AddMinutes(30).ToUnixTimeMilliseconds().ToString();
+        var expiresInMilSeconds = DateTimeOffset.Now.AddHours(24).ToUnixTimeMilliseconds().ToString();
 
         var claims = new List<Claim>
             {
@@ -26,7 +26,7 @@ public class AuthService
         var credentials = new SigningCredentials(byteSymmetricSecurityKey, SecurityAlgorithms.HmacSha256Signature);
 
         //ExpiresIn
-        var expiresIn = DateTime.Now.AddMinutes(30);
+        var expiresIn = DateTime.Now.AddHours(24);
 
         //Payload
         var payload = new JwtSecurityToken(claims: claims, expires: expiresIn, signingCredentials: credentials, issuer: user.Id.ToString());

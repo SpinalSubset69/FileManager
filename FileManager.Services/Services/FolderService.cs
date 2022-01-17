@@ -1,4 +1,5 @@
-﻿using FileManager.Util.Files;
+﻿using FileManager.Entities.Dtos.FolderDtos;
+using FileManager.Util.Files;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,10 +17,10 @@ public class FolderService
         _db = db;
     }
 
-    public async Task CreateUserFolder(Folder folder)
+    public async Task CreateUserFolder(RegisterFolderDto folder, int userId)
     {
         await _db.Folders.SaveEntityAsync<dynamic>(StoredProcedures.CreateFolder, 
-            new { Name = folder.Name, Description = folder.Description, UserId = folder.UserId, Created_At = DateTime.Now});
+            new { Name = folder.Name, Description = folder.Description, UserId = userId, Created_At = DateTime.Now});
     }
 
     public async Task<IEnumerable<Folder>> FindFoldersBasedOnUserId(int userId)

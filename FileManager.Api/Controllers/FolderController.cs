@@ -11,12 +11,14 @@ public class FolderController : ControllerBase
     private readonly FolderService _folderService;
     private readonly IMapper _mapper;
     private readonly IWebHostEnvironment _host;
+    private readonly AuthService _authService;
 
-    public FolderController(FolderService folderService, IMapper mapper, IWebHostEnvironment host)
+    public FolderController(FolderService folderService, IMapper mapper, IWebHostEnvironment host, AuthService authService)
     {
         _folderService = folderService;
         _mapper = mapper;
         _host = host;
+        _authService = authService;
     }
 
 
@@ -26,8 +28,9 @@ public class FolderController : ControllerBase
 
         try
         {
-
-            await _folderService.CreateUserFolder(_mapper.Map<RegisterFolderDto, Folder>(request));
+            var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
+            var tokenInfo = _authService.DecodeToken(token);
+            await _folderService.CreateUserFolder(request, Convert.ToInt32(tokenInfo.Issuer));
 
             return Results.Ok("Folder Created on DB");
         }
@@ -91,7 +94,7 @@ public class FolderController : ControllerBase
         try
         {
 
-            await _folderService.DeleteFolder(id, _host.ContentRootPath);
+            await _folderService.DeleteFolder(id, _host.WebRootPath);
 
             return Results.Ok(new { message = "Folder Removed" });
         }
