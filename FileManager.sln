@@ -7,8 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileManager.Api", "FileMana
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileManage.DataAccess", "FileManage.DataAccess\FileManage.DataAccess.csproj", "{BDFBAEBE-9B40-4324-A135-074BBDB27A6F}"
 EndProject
-Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "FileManagerDb", "FileManagerDb\FileManagerDb.sqlproj", "{77C1AC10-EC07-45D9-BA5B-8397A19D38A0}"
-EndProject
+
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileManager.Entities", "FileManager.Entities\FileManager.Entities.csproj", "{3A9B7DE1-B445-4288-AA04-89376A0CB5D6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D48DE56F-9B68-430F-BEE7-F8BE0984B347}"
