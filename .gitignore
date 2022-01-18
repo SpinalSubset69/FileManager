@@ -366,5 +366,4 @@ FodyWeavers.xsd
 # Node Modules
 */node_modules/
 
-/Uploads/
-wwwroot
+Uploads
