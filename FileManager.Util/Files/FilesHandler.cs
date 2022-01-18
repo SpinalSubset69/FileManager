@@ -6,6 +6,27 @@ namespace FileManager.Util.Files;
 
 public class FilesHandler
 {
+    public static double CalculateNewSpaceInUse(double spaceInUse, string content)
+    {
+
+        //SpaceInUse will storage the bytes length
+
+        const double megaBytes = 1048576;
+        
+        double MAX_SIZE = 500 * megaBytes;
+
+        //Get file bytes length
+        var fileSize = Convert.FromBase64String(content.base64WithoutHeader());
+
+        double newSpaceInUse= (spaceInUse + fileSize.Length);
+               
+        if( newSpaceInUse > MAX_SIZE)
+        {
+            throw new ApplicationException("User Storage Space Have Reached Maximum Size");
+        }
+        
+        return newSpaceInUse;
+    }
     public static async Task<UserFile> WriteFileOnServer(string path, FileUploadRequest file)
     {
         //Get data from the file

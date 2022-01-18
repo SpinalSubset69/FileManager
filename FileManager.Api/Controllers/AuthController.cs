@@ -39,9 +39,9 @@ public class AuthController: ControllerBase
         try
         {
 
-            await _userService.SaveUserAsync(user);
+            var userSaved = await _userService.SaveUserAsync(user);
 
-            return Results.Ok("User Saved on DB");
+            return Results.Ok(new { message = "User Saved on DB", data = userSaved });
         }
         catch (Exception ex)
         {

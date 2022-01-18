@@ -6,5 +6,6 @@
     [Password] VARBINARY(MAX) NOT NULL, 
     [PasswordSalt] VARBINARY(MAX) NOT NULL, 
     [Created_At] DATETIME NULL, 
-    [ProfileImage] VARCHAR(255) NULL
+    [ProfileImage] VARCHAR(255) NULL,
+    [SpaceInUse] VARCHAR(MAX) NULL
 )

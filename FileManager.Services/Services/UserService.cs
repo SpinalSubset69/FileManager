@@ -6,11 +6,14 @@ namespace FileManager.Services.Services
 {
     public class UserService
     {
-        private readonly IUnitOfWork _db;        
-
-        public UserService(IUnitOfWork db)
+        private readonly IUnitOfWork _db;     
+        private readonly IConfiguration _configuration;
+        private string connectionId = "";
+        public UserService(IUnitOfWork db, IConfiguration configuration)
         {
-            _db = db;            
+            _db = db;
+            _configuration = configuration;
+            connectionId = _configuration["connectionId"];
         }
 
         public async Task SaveUserImageAsync(int id, FileUploadRequest file, string path)
@@ -21,7 +24,7 @@ namespace FileManager.Services.Services
             {
                 Id = id,
                 ProfileImage = fileSaved.FileName + "." + fileSaved.FileExtension
-            });
+            }, connectionId);
         }        
 
         public async Task<IEnumerable<UserFile>> QueryOnFilesAsync(int id, string query)
@@ -30,55 +33,66 @@ namespace FileManager.Services.Services
             {
                 Id = id,
                 Query = query
-            });
+            }, connectionId);
 
             return files;
         }
 
-        public async Task SaveUserAsync(RegisterUserDto user)
+        public async Task<User> SaveUserAsync(RegisterUserDto user)
         {
             //Encrypt User Password
-            Util.Encrypt.EncryptHMAC.GetHMAC512(user.Password, out byte[] hashedPassword, out byte[] hashedSalt);
-            
+            Util.Encrypt.EncryptHMAC.GetHMAC512(user.Password, out byte[] hashedPassword, out byte[] hashedSalt);            
             //Save on the db
             await _db.Users.SaveEntityAsync<dynamic>(StoredProcedures.SaveUser, 
-                new { UserName = user.UserName, Email = user.Email,  Password = hashedPassword, PasswordSalt = hashedSalt, Created_At = DateTime.Now});
+                new { UserName = user.UserName, Email = user.Email.ToLower(),  Password = hashedPassword, PasswordSalt = hashedSalt, Created_At = DateTime.Now},
+                connectionId);
+
+            var users = await _db.Users.ExecuteEntityQueriesAsync<User, dynamic>(StoredProcedures.GetUserByEmail, new { email = user.Email }, connectionId);
+
+            return users.FirstOrDefault();
         }
 
         public async Task<User?> FindUserById(int id)
         {
-            return await _db.Users.FindByIdAsync(StoredProcedures.GetUserById, id);            
+            return await _db.Users.FindByIdAsync(StoredProcedures.GetUserById, id, connectionId);            
         }
 
         public async Task UpdateUserInfo(int id, UpdateUserInfoDto request)
         {
             var user = await FindUserById(id);
 
-            await _db.Users.UpdateEntityAsync<dynamic>(StoredProcedures.UpdateUserInfo, new { UserName = request.UserName, Email = request.Email, Id = user.Id });
+            await _db.Users.UpdateEntityAsync<dynamic>(StoredProcedures.UpdateUserInfo, new { UserName = request.UserName, Email = request.Email, Id = user.Id }, connectionId);
         }
 
         public async Task DeleteUser(int id, string path)
         {
-            var userFiles = await _db.Users.ExecuteEntityQueriesAsync<UserFile, dynamic>(StoredProcedures.GetAllUserFiles, new { Id = id });
+            var userFiles = await _db.Users.ExecuteEntityQueriesAsync<UserFile, dynamic>(StoredProcedures.GetAllUserFiles, new { Id = id }, connectionId);
 
             foreach (var file in userFiles)
             {
                 FilesHandler.DeleteFileOnServer(path, file.FileName, file.FileExtension);
             }
 
-            await _db.Users.DeleteEntityAsync(StoredProcedures.DeleteUser, id);
+            await _db.Users.DeleteEntityAsync(StoredProcedures.DeleteUser, id, connectionId);
         }
 
         public async Task<UserFile> UploadFile(int id, FileUploadRequest file, string webContentPath)
         {
             var user = await FindUserById(id);
-            var fileInfo = await FilesHandler.WriteFileOnServer(webContentPath, file);
+
+            var newSpaceInUse = FilesHandler.CalculateNewSpaceInUse(Convert.ToDouble(user.SpaceInUse), file.Content);
+
+            await _db.Users.ExecuteEntityCommandsAsync<dynamic>(StoredProcedures.UpdateSpaceInUse, new { Id = id, SpaceInUse = newSpaceInUse }, connectionId);
+
+            var fileInfo = await FilesHandler.WriteFileOnServer(webContentPath, file);            
             fileInfo.UserId = user.Id;
-            await _db.Users.UploadFileAsync(StoredProcedures.UploadFile, fileInfo);
+
+            await _db.Users.UploadFileAsync(StoredProcedures.UploadFile, fileInfo, connectionId);
+            
             var userFiles = await _db.Users.ExecuteEntityQueriesAsync<UserFile, dynamic>(StoredProcedures.GetFileByName, new
             {
                 FileName = fileInfo.FileName
-            });
+            }, connectionId);
 
             return userFiles.FirstOrDefault();
         }
@@ -90,31 +104,23 @@ namespace FileManager.Services.Services
                 Id = fileId,
                 UserId = userId,
                 FolderId = folderId
-            });
+            }, connectionId);
         }
 
         public async Task<IEnumerable<dynamic>?> GetUserFilesOrFolders(int userId, string target, PaginationParams pagParams)
         {
             return target.ToLower() switch
             {
-                "folders" => await _db.Users.ExecuteEntityQueriesAsync<Folder, dynamic>(StoredProcedures.GetUserFolders, new { UserId = userId }),
+                "folders" => await _db.Users.ExecuteEntityQueriesAsync<Folder, dynamic>(StoredProcedures.GetUserFolders, new { UserId = userId }, connectionId),
                 "files" => await _db.Users.ExecuteEntityQueriesAsync<UserFile, dynamic>(StoredProcedures.GetUserFIles, 
-                new { Id = userId}),
+                new { Id = userId}, connectionId),
                 _ => null
             };
         }
 
-        public async Task<int> GetUserFilesCountWithoutFolders(int userId)
-        {
-            var totals = await _db.Users.ExecuteEntityQueriesAsync<dynamic, dynamic>(StoredProcedures.GetFilesCount, new { UserId = userId });
-            var total = totals.FirstOrDefault();
-
-            return total.TOTAL;
-        }
-
         public async Task<User?> VerifyLoginInfo(LoginDto info)
         {
-            var users = await _db.Users.ExecuteEntityQueriesAsync<User, dynamic>(StoredProcedures.GetUserByEmail, new { email = info.Email});
+            var users = await _db.Users.ExecuteEntityQueriesAsync<User, dynamic>(StoredProcedures.GetUserByEmail, new { email = info.Email}, connectionId);
             var user = users.FirstOrDefault();
 
             if(!Util.Encrypt.EncryptHMAC.CompareHMAC512(info.Password, user.Password, user.PasswordSalt))
@@ -130,17 +136,17 @@ namespace FileManager.Services.Services
             var files = await _db.Users.ExecuteEntityQueriesAsync<UserFile, dynamic>(StoredProcedures.GetFileInfo,new
             {
                 Id = id
-            });
+            }, connectionId);
             var fileInfo = files.FirstOrDefault();
             return await FilesHandler.GetFileBytes(contentRootPath, fileInfo);
         }
 
         public async Task DeleteUserFileAsync(int fileId, string contentRootPath)
         {            
-            var files = await _db.Users.ExecuteEntityQueriesAsync<UserFile, dynamic>(StoredProcedures.GetFileInfo, new { Id = fileId });
+            var files = await _db.Users.ExecuteEntityQueriesAsync<UserFile, dynamic>(StoredProcedures.GetFileInfo, new { Id = fileId }, connectionId);
             var file = files.FirstOrDefault();            
 
-            await _db.Users.ExecuteEntityCommandsAsync<dynamic>(StoredProcedures.DeleteFile, new { Id = fileId });
+            await _db.Users.ExecuteEntityCommandsAsync<dynamic>(StoredProcedures.DeleteFile, new { Id = fileId }, connectionId);
             FilesHandler.DeleteFileOnServer(contentRootPath, file.FileName, file.FileExtension);
         }
     }

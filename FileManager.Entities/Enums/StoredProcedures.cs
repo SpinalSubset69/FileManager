@@ -25,6 +25,7 @@ public static class StoredProcedures
     public const string GetFilesCount = "dbo.fmUser_UserFilesCount";
     public const string QueryOnUserFiles= "dbo.fmUser_QueryOnFiles";
     public const string GetFileByName = "dbo.fmFile_GetFileByName";
+    public const string UpdateSpaceInUse = "dbo.fmUser_UpdateSpaceInUse";
 
     //Folders StoredProcedures
     public const string CreateFolder = "dbo.fmFolder_Insert";    

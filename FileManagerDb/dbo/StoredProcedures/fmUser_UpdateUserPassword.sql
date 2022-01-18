@@ -1,6 +1,6 @@
 ﻿CREATE PROCEDURE [dbo].[fmUser_UpdateUserPassword]
-	@Password varchar(MAX),
-	@PasswordSalt varchar(MAX),
+	@Password varbinary(MAX),
+	@PasswordSalt varbinary(MAX),
 	@Id int
 AS
 BEGIN

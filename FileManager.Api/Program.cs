@@ -29,15 +29,8 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 
-//Data Access
-builder.Services.AddSingleton<ISqlDataAccess, SqlDataAccess>();
-builder.Services.AddSingleton<IUnitOfWork, UnitOfWork>();
-
-//Services
-builder.Services.AddScoped(typeof(UserService));
-builder.Services.AddScoped(typeof(FolderService));
-builder.Services.AddScoped(typeof(AuthService));
-builder.Services.AddAutoMapper(typeof(MappingProifle));
+//Dependencies Injection
+builder.Services.DependenciesContainerExtension();
 
 //Authentication Shceme
 builder.Services.AddJwtBearerAuthorizationSchema(builder.Configuration);
@@ -49,6 +42,12 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    builder.Configuration["connectionId"] = "dev";
+}
+
+if (!app.Environment.IsDevelopment())
+{
+    builder.Configuration["connectionId"] = "prod";
 }
 
 app.UseStaticFiles();

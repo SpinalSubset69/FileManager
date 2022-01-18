@@ -14,5 +14,6 @@ namespace FileManager.Entities.Entities
         public byte[] PasswordSalt { get; set; }
         public DateTime Created_At { get; set; }
         public string? ProfileImage { get; set; }
+        public string SpaceInUse { get; set; }
     }
 }

@@ -65,7 +65,7 @@ public class UserController: ControllerBase
         {
             var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
             var tokenInfo = _authService.DecodeToken(token);
-            var files = await _userService.GetUserFilesOrFolders(Convert.ToInt32(tokenInfo.Issuer), "files", pagParams);            
+            var files = await _userService.GetUserFilesOrFolders(Convert.ToInt32(tokenInfo.Issuer), "files", pagParams);                
             return Results.Ok(new { message = "Files", data = files });
         }
         catch (Exception ex)
@@ -165,14 +165,12 @@ public class UserController: ControllerBase
         }
     }
 
-    [HttpPost("/userimage"), Authorize]
-    public async Task<IResult> UploadUserImage([FromBody] FileUploadRequest file)
+    [HttpPost("/userimage/{id}")]
+    public async Task<IResult> UploadUserImage(int id, [FromBody] FileUploadRequest file)
     {
         try
         {
-            var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
-            var tokenInfo = _authService.DecodeToken(token);
-            await _userService.SaveUserImageAsync(Convert.ToInt32(tokenInfo.Issuer), file, _host.WebRootPath);
+            await _userService.SaveUserImageAsync(id, file, _host.WebRootPath);
 
             return Results.Ok(new { message = "File Uploaded" });
         }

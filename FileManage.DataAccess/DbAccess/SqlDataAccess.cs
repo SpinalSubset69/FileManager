@@ -12,7 +12,7 @@ namespace FileManage.DataAccess.DbAccess
 {
     public class SqlDataAccess : ISqlDataAccess
     {
-        private readonly IConfiguration _config;
+        private readonly IConfiguration _config;        
 
         public SqlDataAccess(IConfiguration config)
         {
