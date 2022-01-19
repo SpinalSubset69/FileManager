@@ -13,13 +13,15 @@ public class FolderService
 {
     private readonly IUnitOfWork _db;
     private readonly IConfiguration _configuration;
+    private readonly UserService _userService;
     private string connectionId = "";
 
-    public FolderService(IUnitOfWork db, IConfiguration configuration)
+    public FolderService(IUnitOfWork db, IConfiguration configuration, UserService userService)
     {
         _db = db;
         _configuration = configuration;
         connectionId = _configuration["connectionId"];
+        _userService = userService;
     }
 
     public async Task CreateUserFolder(RegisterFolderDto folder, int userId)
@@ -43,19 +45,27 @@ public class FolderService
         await _db.Folders.UpdateEntityAsync<dynamic>(StoredProcedures.UpdateFolderDesc, new { Description = folderName, Id = id }, connectionId);
     }
 
-    public async Task DeleteFolder(int id, string path)
+    public async Task DeleteFolder(int userId, int id, string path)
     {
+        var user = await _userService.FindUserById(userId);        
         var files = await _db.Folders.ExecuteEntityQueriesAsync<UserFile, dynamic>(StoredProcedures.GetFolderFiles, new { FolderId = id}, connectionId);
+        
+        double spaceInUse = Convert.ToDouble(user.SpaceInUse);
+        double spaceToErrase = 0;
 
         if(files != null)
         {
             foreach (var file in files)
             {
                 FilesHandler.DeleteFileOnServer(path, file.FileName, file.FileExtension);
+
+                await _db.Users.ExecuteEntityCommandsAsync<dynamic>(StoredProcedures.DeleteFile, new { Id = file.Id }, connectionId);
+                spaceToErrase += file.FileSize; 
             }
         }        
 
         await _db.Folders.DeleteEntityAsync(StoredProcedures.DeleteFolder, id, connectionId);
+        await _db.Users.ExecuteEntityCommandsAsync<dynamic>(StoredProcedures.UpdateSpaceInUse, new { Id = user.Id, SpaceInUse = (spaceInUse - spaceToErrase) }, connectionId);
     }
 
     public async Task<IEnumerable<UserFile>> GetFolderFiles(int folderId) =>

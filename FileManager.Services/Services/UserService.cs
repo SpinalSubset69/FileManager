@@ -107,13 +107,18 @@ namespace FileManager.Services.Services
             }, connectionId);
         }
 
-        public async Task<IEnumerable<dynamic>?> GetUserFilesOrFolders(int userId, string target, PaginationParams pagParams)
+        public async Task<IEnumerable<dynamic>?> GetUserFilesOrFolders(int userId, string target)
         {
             return target.ToLower() switch
             {
                 "folders" => await _db.Users.ExecuteEntityQueriesAsync<Folder, dynamic>(StoredProcedures.GetUserFolders, new { UserId = userId }, connectionId),
-                "files" => await _db.Users.ExecuteEntityQueriesAsync<UserFile, dynamic>(StoredProcedures.GetUserFIles, 
+
+                "filesoutfolder" => await _db.Users.ExecuteEntityQueriesAsync<UserFile, dynamic>(StoredProcedures.GetUserFIlesOutFolder,                 
                 new { Id = userId}, connectionId),
+
+                "files" => await _db.Users.ExecuteEntityQueriesAsync<UserFile, dynamic>(StoredProcedures.GetUserFiles,                 
+                new { Id = userId}, connectionId),
+
                 _ => null
             };
         }
@@ -141,12 +146,17 @@ namespace FileManager.Services.Services
             return await FilesHandler.GetFileBytes(contentRootPath, fileInfo);
         }
 
-        public async Task DeleteUserFileAsync(int fileId, string contentRootPath)
-        {            
+        public async Task DeleteUserFileAsync(int id,int fileId, string contentRootPath)
+        {   
+            var user = await FindUserById(id);
             var files = await _db.Users.ExecuteEntityQueriesAsync<UserFile, dynamic>(StoredProcedures.GetFileInfo, new { Id = fileId }, connectionId);
-            var file = files.FirstOrDefault();            
+            var file = files.FirstOrDefault();
 
+            var newSpaceInUse = FilesHandler.CalculateNewSpaceInUse(Convert.ToDouble(user.SpaceInUse), null, file.FileSize);            
+
+            await _db.Users.ExecuteEntityCommandsAsync<dynamic>(StoredProcedures.UpdateSpaceInUse, new { Id = user.Id, SpaceInUse = newSpaceInUse }, connectionId);
             await _db.Users.ExecuteEntityCommandsAsync<dynamic>(StoredProcedures.DeleteFile, new { Id = fileId }, connectionId);
+
             FilesHandler.DeleteFileOnServer(contentRootPath, file.FileName, file.FileExtension);
         }
     }

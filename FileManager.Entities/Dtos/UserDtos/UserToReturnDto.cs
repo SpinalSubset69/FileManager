@@ -13,6 +13,7 @@ public class UserToReturnDto
     public string Email { get; set; }
     public DateTime Created_At { get; set; }
     public string? ProfileImage { get; set; }
+    public string? SpaceInUse { get; set; }
 
     public UserToReturnDto(int id, string userName, string email, DateTime created_At, string? profileImage)
     {

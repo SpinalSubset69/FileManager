@@ -46,8 +46,6 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-
-  
   <Import Condition="'$(SQLDBExtensionsRefPath)' != ''" Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
   <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
   <ItemGroup>
@@ -86,6 +84,7 @@
     <Build Include="dbo\StoredProcedures\fmUser_QueryOnFiles.sql" />
     <Build Include="dbo\StoredProcedures\fmFile_GetFileByName.sql" />
     <Build Include="dbo\StoredProcedures\fmUser_UpdateSpaceInUse.sql" />
+    <Build Include="dbo\StoredProcedures\fmUser_GetFiles.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FileManagerDb.publish.xml" />

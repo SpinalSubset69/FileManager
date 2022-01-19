@@ -48,7 +48,7 @@ public class UserController: ControllerBase
         {
             var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
             var tokenInfo = _authService.DecodeToken(token);
-            var folders = await _userService.GetUserFilesOrFolders(Convert.ToInt32(tokenInfo.Issuer), "folders", pagParams);            
+            var folders = await _userService.GetUserFilesOrFolders(Convert.ToInt32(tokenInfo.Issuer), "folders");            
 
             return Results.Ok(new { message = "Folders", data = folders });
         }
@@ -58,14 +58,30 @@ public class UserController: ControllerBase
         }
     }
 
-    [HttpGet("/userfiles/"), Authorize, Authorize]
-    public async Task<IResult> GetUserFiles([FromQuery]PaginationParams pagParams)
+    [HttpGet("/userfilesoutfolder/"), Authorize]
+    public async Task<IResult> GetUserFiles()
     {
         try
         {
             var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
             var tokenInfo = _authService.DecodeToken(token);
-            var files = await _userService.GetUserFilesOrFolders(Convert.ToInt32(tokenInfo.Issuer), "files", pagParams);                
+            var files = await _userService.GetUserFilesOrFolders(Convert.ToInt32(tokenInfo.Issuer), "filesOutFolder");                
+            return Results.Ok(new { message = "Files", data = files });
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem(ex.Message);
+        }
+    }
+
+    [HttpGet("/files"), Authorize]
+    public async Task<IResult> GetAllUserFiles([FromQuery]PaginationParams pagParams)
+    {
+        try
+        {
+            var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
+            var tokenInfo = _authService.DecodeToken(token);
+            var files = await _userService.GetUserFilesOrFolders(Convert.ToInt32(tokenInfo.Issuer), "files");                
             return Results.Ok(new { message = "Files", data = files });
         }
         catch (Exception ex)
@@ -139,7 +155,9 @@ public class UserController: ControllerBase
     {
         try
         {
-            await _userService.DeleteUserFileAsync(id, _host.WebRootPath);
+            var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
+            var tokenInfo = _authService.DecodeToken(token);
+            await _userService.DeleteUserFileAsync( Convert.ToInt32(tokenInfo.Issuer) ,id, _host.WebRootPath);
 
             return Results.Ok(new { message = "File Removed" });
         }catch(Exception ex)

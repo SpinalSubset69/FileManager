@@ -57,7 +57,7 @@ public class FolderController : ControllerBase
     //}
 
     [HttpPut("/updatename/{id}")]
-    public async Task<IResult> UpdateFolderName(int id, [FromBody]string name)
+    public async Task<IResult> UpdateFolderName(int id, [FromBody] string name)
     {
         try
         {
@@ -94,7 +94,9 @@ public class FolderController : ControllerBase
         try
         {
 
-            await _folderService.DeleteFolder(id, _host.WebRootPath);
+            var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
+            var tokenInfo = _authService.DecodeToken(token);
+            await _folderService.DeleteFolder( Convert.ToInt32(tokenInfo.Issuer) ,id, _host.WebRootPath);
 
             return Results.Ok(new { message = "Folder Removed" });
         }
